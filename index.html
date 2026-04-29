@@ -191,7 +191,7 @@
 
   <div class="setup-note" id="setupNote">
     ⚠️ <strong>Configuración requerida:</strong> Antes de usar esta app, debes reemplazar
-    <code>TU_URL_DE_APPS_SCRIPT_AQUÍ</code> en el código con la URL real de tu Google Apps Script.
+    <code>https://script.google.com/macros/s/AKfycbzrt-8zqFyG1WiyN49YGD2zrDP2pVt4LK99-8pSXEoZuvHLvb8n3J_RHqLIYOgaWHzG/exec</code> en el código con la URL real de tu Google Apps Script.
     Sigue las instrucciones del paso 2 del manual.
   </div>
 
@@ -274,7 +274,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrt-8zqFyG1Wiy
 document.getElementById("fecha").valueAsDate = new Date();
 
 // Ocultar nota de setup si ya hay URL real
-if (APPS_SCRIPT_URL !== "TU_URL_DE_APPS_SCRIPT_AQUÍ") {
+if (APPS_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbzrt-8zqFyG1WiyN49YGD2zrDP2pVt4LK99-8pSXEoZuvHLvb8n3J_RHqLIYOgaWHzG/exec") {
   document.getElementById("setupNote").style.display = "none";
 }
 
@@ -400,7 +400,7 @@ async function enviarGastos() {
   document.getElementById("btnEnviar").disabled = true;
 
   try {
-    if (APPS_SCRIPT_URL === "TU_URL_DE_APPS_SCRIPT_AQUÍ") {
+    if (APPS_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzrt-8zqFyG1WiyN49YGD2zrDP2pVt4LK99-8pSXEoZuvHLvb8n3J_RHqLIYOgaWHzG/exec") {
       // MODO DEMO: mostrar resumen sin enviar
       await new Promise(r => setTimeout(r, 800));
       mostrarResumenDemo(filas);
