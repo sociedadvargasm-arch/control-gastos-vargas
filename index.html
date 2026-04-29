@@ -218,7 +218,7 @@
         </select>
       </div>
       <div>
-        <label for="socio">Registrado por</label>
+        <label for="socio">Registrado por <span style="color:var(--red)">*</span></label>
         <select id="socio">
           <option value="">— Seleccionar —</option>
           <option value="Sofía Vargas">Sofía Vargas</option>
@@ -227,6 +227,20 @@
       </div>
     </div>
 
+    <label for="categoria">Categoría <span style="color:var(--red)">*</span></label>
+    <select id="categoria">
+      <option value="">— Seleccionar categoría —</option>
+      <option value="Droga veterinaria">💊 Droga veterinaria</option>
+      <option value="Insumos">🌿 Insumos</option>
+      <option value="Mano de obra">👷 Mano de obra</option>
+      <option value="Equipos y mantenimiento">🚜 Equipos y mantenimiento</option>
+      <option value="Transporte">🚛 Transporte</option>
+      <option value="Víveres y mercado">🛒 Víveres y mercado</option>
+      <option value="Locativos">🏠 Locativos</option>
+      <option value="Servicios públicos">💡 Servicios públicos</option>
+      <option value="Otros">📑 Otros</option>
+    </select>
+
     <label for="fecha">Fecha del gasto</label>
     <input type="date" id="fecha">
 
@@ -234,7 +248,7 @@
     <input type="text" id="notas" placeholder="Ej: Compra urgente por brote de aftosa">
 
     <button class="btn-primary" onclick="enviarGastos()" id="btnEnviar">
-      💾 Guardar en Google Sheets
+      💾 Guardar
     </button>
   </div>
 
@@ -367,11 +381,14 @@ async function enviarGastos() {
   const socio      = document.getElementById("socio").value;
   const fecha      = document.getElementById("fecha").value;
   const notas      = document.getElementById("notas").value.trim();
+  const catManual  = document.getElementById("categoria").value;
 
   // Validaciones
+  const categoria_sel = document.getElementById("categoria").value;
   if (!gastosRaw) return mostrarError("Por favor ingresa al menos un gasto.");
   if (!finca)     return mostrarError("Selecciona la finca.");
   if (!socio)     return mostrarError("Selecciona quién registra el gasto.");
+  if (!categoria_sel) return mostrarError("Debes seleccionar una categoría.");
   if (!fecha)     return mostrarError("Selecciona la fecha.");
 
   const lineas = parsearLineas(gastosRaw);
@@ -379,15 +396,14 @@ async function enviarGastos() {
 
   // Procesar cada línea
   const filas = lineas.map(linea => {
-    const { cat, sub } = categorizarGasto(linea);
     const valor = extraerValor(linea);
     // Quitar el valor monetario de la descripción
     const descripcionLimpia = linea.replace(/\$\s*[\d.,]+/g, "").replace(/\s+/g, " ").trim();
     return {
       fecha,
       descripcion: descripcionLimpia,
-      categoria:   cat,
-      subcategoria: sub,
+      categoria:   categoria_sel,
+      subcategoria: "",
       finca,
       proveedor:   "",
       cantidad:    1,
@@ -448,7 +464,7 @@ function mostrarResumenDemo(filas) {
 
 function mostrarExito(filas, n) {
   const total = filas.reduce((s,f)=>s+f.total,0);
-  let html = `<h3 class="ok-title">✅ ${n} fila${n>1?"s":""} guardada${n>1?"s":""} en Google Sheets</h3>`;
+  let html = `<h3 class="ok-title">✅ ${n} gasto${n>1?"s":""} guardado${n>1?"s":""} correctamente</h3>`;
   filas.forEach(f => {
     html += `<div class="resumen-item">
       <span class="label">${f.descripcion.substring(0,45)}${f.descripcion.length>45?"…":""}</span>
@@ -458,9 +474,13 @@ function mostrarExito(filas, n) {
   });
   html += `<div class="resumen-item" style="border-top:2px solid #ccc;margin-top:8px;padding-top:8px;">
     <strong>TOTAL REGISTRADO</strong><strong>${formatearPeso(total)}</strong>
-  </div>
-  <button onclick="limpiarFormulario()" style="margin-top:10px;padding:8px 16px;background:var(--green-dark);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;">+ Registrar más gastos</button>`;
+  </div>`;
   mostrarRespuesta("ok", html);
+  // Auto-limpiar formulario después de 3 segundos
+  setTimeout(() => {
+    limpiarFormulario();
+    document.getElementById("resultado").style.display = "none";
+  }, 3000);
 }
 
 function mostrarError(msg) {
@@ -476,8 +496,10 @@ function mostrarRespuesta(tipo, html) {
 }
 
 function limpiarFormulario() {
-  document.getElementById("gastos").value = "";
-  document.getElementById("notas").value  = "";
+  document.getElementById("gastos").value   = "";
+  document.getElementById("notas").value    = "";
+  document.getElementById("socio").value    = "";
+  document.getElementById("categoria").value = "";
   document.getElementById("fecha").valueAsDate = new Date();
   document.getElementById("resultado").style.display = "none";
   document.getElementById("gastos").focus();
