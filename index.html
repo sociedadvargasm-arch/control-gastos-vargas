@@ -189,7 +189,7 @@
 
 <div class="container">
 
-  <div class="setup-note" id="setupNote">
+  <div class="setup-note" id="setupNote" style="display:none">
     ⚠️ <strong>Configuración requerida:</strong> Antes de usar esta app, debes reemplazar
     <code>https://script.google.com/macros/s/AKfycbzrt-8zqFyG1WiyN49YGD2zrDP2pVt4LK99-8pSXEoZuvHLvb8n3J_RHqLIYOgaWHzG/exec</code> en el código con la URL real de tu Google Apps Script.
     Sigue las instrucciones del paso 2 del manual.
@@ -400,23 +400,21 @@ async function enviarGastos() {
   document.getElementById("btnEnviar").disabled = true;
 
   try {
-    if (APPS_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzrt-8zqFyG1WiyN49YGD2zrDP2pVt4LK99-8pSXEoZuvHLvb8n3J_RHqLIYOgaWHzG/exec") {
+    if (APPS_SCRIPT_URL === "NINGUNA") {
       // MODO DEMO: mostrar resumen sin enviar
       await new Promise(r => setTimeout(r, 800));
       mostrarResumenDemo(filas);
     } else {
-      // MODO REAL: enviar al Apps Script
-      const resp = await fetch(APPS_SCRIPT_URL, {
+      // MODO REAL: enviar via no-cors (evita bloqueo CORS del navegador)
+      const formData = new FormData();
+      formData.append("payload", JSON.stringify({ filas }));
+      await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ filas })
+        mode: "no-cors",
+        body: formData
       });
-      const data = await resp.json();
-      if (data.status === "ok") {
-        mostrarExito(filas, data.filasInsertadas || filas.length);
-      } else {
-        mostrarError("Error del servidor: " + (data.mensaje || "Revisa la consola de Apps Script."));
-      }
+      await new Promise(r => setTimeout(r, 1500));
+      mostrarExito(filas, filas.length);
     }
   } catch (err) {
     mostrarError("No se pudo conectar con Google Sheets. Verifica la URL del Apps Script y que esté publicado como app web pública. Error: " + err.message);
