@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Gastos — Sociedad Vargas Mesa</title>
+<style>
+  :root {
+    --green-dark: #1B5E20;
+    --green-med:  #2E7D32;
+    --green-light:#C8E6C9;
+    --green-bg:   #E8F5E9;
+    --amber:      #F9A825;
+    --red:        #C62828;
+    --gray:       #757575;
+    --border:     #BDBDBD;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #F5F5F5;
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--green-dark);
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.2rem; font-weight: 700; line-height: 1.3; }
+  header p  { font-size: 0.78rem; opacity: 0.85; margin-top: 4px; }
+
+  .container {
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 0 16px 40px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card h2 {
+    font-size: 0.95rem;
+    color: var(--green-dark);
+    border-bottom: 2px solid var(--green-light);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    margin-top: 12px;
+  }
+  label:first-child { margin-top: 0; }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.9rem;
+    color: #222;
+    background: #FAFAFA;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--green-med);
+    background: white;
+  }
+  textarea { resize: vertical; min-height: 100px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--green-dark);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover  { background: var(--green-med); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: #999; cursor: not-allowed; }
+
+  #resultado {
+    display: none;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  #resultado.ok    { background: #E8F5E9; border: 2px solid var(--green-med); }
+  #resultado.error { background: #FFEBEE; border: 2px solid var(--red); }
+  #resultado h3    { font-size: 0.95rem; margin-bottom: 10px; }
+  #resultado .ok-title   { color: var(--green-dark); }
+  #resultado .err-title  { color: var(--red); }
+
+  .resumen-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed #ccc;
+    font-size: 0.82rem;
+  }
+  .resumen-item:last-child { border: none; }
+  .resumen-item .label { color: #555; }
+  .resumen-item .val   { font-weight: 600; color: #222; }
+
+  .cat-badge {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green-dark);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin: 3px 3px 0 0;
+  }
+
+  .loading { display: none; text-align: center; padding: 20px; color: var(--gray); }
+  .spinner {
+    display: inline-block;
+    width: 28px; height: 28px;
+    border: 3px solid #ccc;
+    border-top-color: var(--green-dark);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .setup-note {
+    background: #FFF8E1;
+    border: 1px solid var(--amber);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    color: #5D4037;
+    margin-bottom: 16px;
+  }
+  .setup-note strong { color: #E65100; }
+
+  footer {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--gray);
+    padding: 10px 0 20px;
+  }
+
+  @media (max-width: 480px) {
+    .row2 { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.05rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🐄 Control de Gastos</h1>
+  <p>Sociedad Vargas Mesa — Aguazul & Yopal, Casanare</p>
+</header>
+
+<div class="container">
+
+  <div class="setup-note" id="setupNote">
+    ⚠️ <strong>Configuración requerida:</strong> Antes de usar esta app, debes reemplazar
+    <code>TU_URL_DE_APPS_SCRIPT_AQUÍ</code> en el código con la URL real de tu Google Apps Script.
+    Sigue las instrucciones del paso 2 del manual.
+  </div>
+
+  <div id="resultado"></div>
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Guardando en Google Sheets…</p>
+  </div>
+
+  <div class="card">
+    <h2>📋 Registro de Gastos</h2>
+
+    <label for="gastos">Gastos (uno por línea o separados por coma)</label>
+    <textarea id="gastos" placeholder="Ejemplos:
+vacuna triple bovina x50 dosis $180.000
+jornal desyerbe 3 personas $120.000 c/u
+gasolina tractor $85.000
+bulto sal mineralizada $45.000"></textarea>
+    <p class="hint">💡 Escribe en lenguaje natural — el sistema categoriza automáticamente</p>
+
+    <div class="row2">
+      <div>
+        <label for="finca">Finca</label>
+        <select id="finca">
+          <option value="">— Seleccionar —</option>
+          <option value="Aguazul">Aguazul</option>
+          <option value="Yopal">Yopal</option>
+          <option value="Otra">Otra</option>
+        </select>
+      </div>
+      <div>
+        <label for="socio">Registrado por</label>
+        <select id="socio">
+          <option value="">— Seleccionar —</option>
+          <option value="Sofía Vargas">Sofía Vargas</option>
+          <option value="Eufracio Vargas">Eufracio Vargas</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="fecha">Fecha del gasto</label>
+    <input type="date" id="fecha">
+
+    <label for="notas">Notas adicionales (opcional)</label>
+    <input type="text" id="notas" placeholder="Ej: Compra urgente por brote de aftosa">
+
+    <button class="btn-primary" onclick="enviarGastos()" id="btnEnviar">
+      💾 Guardar en Google Sheets
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>📖 Ayuda — Categorías automáticas</h2>
+    <div style="font-size:0.8rem; color:#444; line-height:1.6;">
+      <p>El sistema detecta la categoría según palabras clave:</p>
+      <br>
+      <p>🐄 <strong>Sanidad animal:</strong> vacuna, ivermectina, antibiótico, desparasitante, garrapaticida, vitamina, aftosa, brucelosis, medicamento, veterinario</p>
+      <p>🌾 <strong>Alimentación animal:</strong> sal, melaza, concentrado, heno, silo, ensilaje, pasto, bloque, urea, bulto</p>
+      <p>🧪 <strong>Insumos agrícolas:</strong> herbicida, fungicida, insecticida, abono, fertilizante, glifosato, urea (cultivo)</p>
+      <p>👷 <strong>Mano de obra:</strong> jornal, trabajador, empleado, peón, ordeñador, jornalero, servicio</p>
+      <p>🚜 <strong>Maquinaria:</strong> tractor, motosierra, repuesto, aceite, mantenimiento, reparación, bomba</p>
+      <p>🚛 <strong>Transporte:</strong> flete, camión, gasolina, ACPM, gasoil, viaje, traslado</p>
+      <p>🌱 <strong>Semillas:</strong> semilla, material vegetal, esqueje, clon, siembra, plántula</p>
+      <p>📑 <strong>Administración:</strong> servicio público, teléfono, internet, papelería, banco, contador, otro</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Sociedad Vargas Mesa · Sistema de Control de Gastos Fase 1 · Solo Sofía y Eufracio Vargas pueden registrar
+</footer>
+
+<script>
+// ─── CONFIGURACIÓN ─────────────────────────────────────────────────────────
+// ⚠️ REEMPLAZA ESTA URL CON LA DE TU GOOGLE APPS SCRIPT DESPUÉS DE PUBLICARLO
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrt-8zqFyG1WiyN49YGD2zrDP2pVt4LK99-8pSXEoZuvHLvb8n3J_RHqLIYOgaWHzG/exec";
+
+// ─── SET FECHA DEFAULT (hoy) ───────────────────────────────────────────────
+document.getElementById("fecha").valueAsDate = new Date();
+
+// Ocultar nota de setup si ya hay URL real
+if (APPS_SCRIPT_URL !== "TU_URL_DE_APPS_SCRIPT_AQUÍ") {
+  document.getElementById("setupNote").style.display = "none";
+}
+
+// ─── CATEGORIZACIÓN AUTOMÁTICA ────────────────────────────────────────────
+const REGLAS = [
+  { cat: "Sanidad animal",
+    sub: "Medicamentos y vacunas",
+    keys: ["vacuna","ivermectin","antibiótico","antibiotic","desparasit","garrapaticid",
+           "vitaminad","vitamina","aftosa","brucelosis","medicament","veterinar","penicil",
+           "oxitocin","sulfato","betametason","cicatrizant","suero","jeringa"] },
+  { cat: "Alimentación animal",
+    sub: "Suplementos y forraje",
+    keys: ["sal ","sal m","melaza","concentrado","heno","silo","ensilaj","bloque nutri",
+           "urea ganado","urea animal","bulto","forraje","grano","maíz ganado",
+           "sorgo","palmiste","torta de soya"] },
+  { cat: "Insumos agrícolas",
+    sub: "Agroquímicos",
+    keys: ["herbicida","fungicida","insecticida","abono","fertilizant","glifosato",
+           "roundup","2,4-d","mancozeb","clorpirifos","cal agrícol","cal dolomít",
+           "fosfato","potasio","nitrogeno","urea cultivo","agroquímic"] },
+  { cat: "Mano de obra",
+    sub: "Jornales",
+    keys: ["jornal","trabajador","empleado","peón","ordeñador","jornalero","cuadrilla",
+           "servicio persona","ayudante","operario","vaquero","palero","desyerbe",
+           "chapeo","chapoleo","zoca","limpia"] },
+  { cat: "Maquinaria y equipos",
+    sub: "Mantenimiento y operación",
+    keys: ["tractor","motosierra","repuesto","aceite","mantenimi","reparaci","bomba agua",
+           "motocultor","trilladora","cosechadora","guadaña","equipo","herramienta",
+           "pala","machete","bota","filtro"] },
+  { cat: "Transporte",
+    sub: "Flete y combustible",
+    keys: ["flete","camión","camion","gasolina","acpm","gasoil","diesél","diesel",
+           "viaje","traslado","transporte","carretera","furgón","remolque","acarreo"] },
+  { cat: "Semillas y material vegetal",
+    sub: "Siembra",
+    keys: ["semilla","material vegetal","esqueje","clon","siembra","plántula","plantula",
+           "vivero","yuca","palma","caña","pasto braquiari","pasto marand","maicillo"] },
+  { cat: "Administración y otros",
+    sub: "Gastos generales",
+    keys: ["servicio público","teléfono","telefono","internet","papelería","banco",
+           "contador","impuesto","seguro","póliza","escritura","notaria","otros"] },
+];
+
+function categorizarGasto(texto) {
+  const t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  for (const r of REGLAS) {
+    for (const k of r.keys) {
+      const kn = k.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+      if (t.includes(kn)) return { cat: r.cat, sub: r.sub };
+    }
+  }
+  return { cat: "Administración y otros", sub: "Sin clasificar" };
+}
+
+function extraerValor(texto) {
+  // Extraer $ seguido de número (acepta . y , como separadores)
+  const m = texto.match(/\$\s*([\d.,]+)/);
+  if (!m) return 0;
+  let n = m[1].replace(/\./g,"").replace(",",".");
+  return parseFloat(n) || 0;
+}
+
+function extraerCantidad(texto) {
+  // "x50", "3 personas", "50 dosis"
+  const m = texto.match(/[xX]?\s*(\d+)\s*(dosis|unidad|kg|litro|lt|gl|galón|personas?|cabeza|ml)?/);
+  if (m && parseInt(m[1]) > 1 && parseInt(m[1]) < 10000) return parseInt(m[1]);
+  return 1;
+}
+
+function parsearLineas(texto) {
+  return texto.split(/[\n,]+/)
+    .map(l => l.trim())
+    .filter(l => l.length > 3);
+}
+
+function formatearPeso(n) {
+  return n.toLocaleString("es-CO", {style:"currency", currency:"COP", maximumFractionDigits:0});
+}
+
+// ─── ENVÍO ─────────────────────────────────────────────────────────────────
+async function enviarGastos() {
+  const gastosRaw  = document.getElementById("gastos").value.trim();
+  const finca      = document.getElementById("finca").value;
+  const socio      = document.getElementById("socio").value;
+  const fecha      = document.getElementById("fecha").value;
+  const notas      = document.getElementById("notas").value.trim();
+
+  // Validaciones
+  if (!gastosRaw) return mostrarError("Por favor ingresa al menos un gasto.");
+  if (!finca)     return mostrarError("Selecciona la finca.");
+  if (!socio)     return mostrarError("Selecciona quién registra el gasto.");
+  if (!fecha)     return mostrarError("Selecciona la fecha.");
+
+  const lineas = parsearLineas(gastosRaw);
+  if (lineas.length === 0) return mostrarError("No se encontraron gastos válidos.");
+
+  // Procesar cada línea
+  const filas = lineas.map(linea => {
+    const { cat, sub } = categorizarGasto(linea);
+    const valor       = extraerValor(linea);
+    const cantidad    = extraerCantidad(linea);
+    const valorUnit   = cantidad > 0 && valor > 0 ? valor / cantidad : valor;
+    return {
+      fecha,
+      descripcion: linea,
+      categoria:   cat,
+      subcategoria: sub,
+      finca,
+      proveedor:   "",
+      cantidad,
+      unidad:      "und",
+      valorUnit:   Math.round(valorUnit),
+      total:       valor,
+      registradoPor: socio,
+      notas
+    };
+  });
+
+  // Mostrar loading
+  document.getElementById("resultado").style.display = "none";
+  document.getElementById("loading").style.display   = "block";
+  document.getElementById("btnEnviar").disabled = true;
+
+  try {
+    if (APPS_SCRIPT_URL === "TU_URL_DE_APPS_SCRIPT_AQUÍ") {
+      // MODO DEMO: mostrar resumen sin enviar
+      await new Promise(r => setTimeout(r, 800));
+      mostrarResumenDemo(filas);
+    } else {
+      // MODO REAL: enviar al Apps Script
+      const resp = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ filas })
+      });
+      const data = await resp.json();
+      if (data.status === "ok") {
+        mostrarExito(filas, data.filasInsertadas || filas.length);
+      } else {
+        mostrarError("Error del servidor: " + (data.mensaje || "Revisa la consola de Apps Script."));
+      }
+    }
+  } catch (err) {
+    mostrarError("No se pudo conectar con Google Sheets. Verifica la URL del Apps Script y que esté publicado como app web pública. Error: " + err.message);
+  } finally {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("btnEnviar").disabled = false;
+  }
+}
+
+function mostrarResumenDemo(filas) {
+  const total = filas.reduce((s,f)=>s+f.total,0);
+  let html = `<h3 class="ok-title">✅ MODO DEMO — Resumen (${filas.length} gasto${filas.length>1?"s":""})</h3>
+  <p style="font-size:0.78rem;color:#555;margin-bottom:10px;">Configura la URL del Apps Script para guardar en Google Sheets.</p>`;
+  filas.forEach(f => {
+    html += `<div class="resumen-item">
+      <span class="label">${f.descripcion.substring(0,45)}${f.descripcion.length>45?"…":""}</span>
+      <span class="val">${formatearPeso(f.total)}</span>
+    </div>
+    <div style="margin-bottom:6px;"><span class="cat-badge">${f.categoria}</span></div>`;
+  });
+  html += `<div class="resumen-item" style="border-top:2px solid #ccc;margin-top:8px;padding-top:8px;">
+    <strong>TOTAL</strong><strong>${formatearPeso(total)}</strong>
+  </div>`;
+  mostrarRespuesta("ok", html);
+}
+
+function mostrarExito(filas, n) {
+  const total = filas.reduce((s,f)=>s+f.total,0);
+  let html = `<h3 class="ok-title">✅ ${n} fila${n>1?"s":""} guardada${n>1?"s":""} en Google Sheets</h3>`;
+  filas.forEach(f => {
+    html += `<div class="resumen-item">
+      <span class="label">${f.descripcion.substring(0,45)}${f.descripcion.length>45?"…":""}</span>
+      <span class="val">${formatearPeso(f.total)}</span>
+    </div>
+    <div style="margin-bottom:6px;"><span class="cat-badge">${f.categoria}</span></div>`;
+  });
+  html += `<div class="resumen-item" style="border-top:2px solid #ccc;margin-top:8px;padding-top:8px;">
+    <strong>TOTAL REGISTRADO</strong><strong>${formatearPeso(total)}</strong>
+  </div>
+  <button onclick="limpiarFormulario()" style="margin-top:10px;padding:8px 16px;background:var(--green-dark);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;">+ Registrar más gastos</button>`;
+  mostrarRespuesta("ok", html);
+}
+
+function mostrarError(msg) {
+  mostrarRespuesta("error", `<h3 class="err-title">⚠️ Error</h3><p style="font-size:0.88rem;margin-top:6px;">${msg}</p>`);
+}
+
+function mostrarRespuesta(tipo, html) {
+  const el = document.getElementById("resultado");
+  el.className = tipo;
+  el.innerHTML = html;
+  el.style.display = "block";
+  el.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function limpiarFormulario() {
+  document.getElementById("gastos").value = "";
+  document.getElementById("notas").value  = "";
+  document.getElementById("fecha").valueAsDate = new Date();
+  document.getElementById("resultado").style.display = "none";
+  document.getElementById("gastos").focus();
+}
+</script>
+</body>
+</html>
