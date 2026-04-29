@@ -205,20 +205,15 @@
     <h2>📋 Registro de Gastos</h2>
 
     <label for="gastos">Gastos (uno por línea o separados por coma)</label>
-    <textarea id="gastos" placeholder="Ejemplos:
-vacuna triple bovina x50 dosis $180.000
-jornal desyerbe 3 personas $120.000 c/u
-gasolina tractor $85.000
-bulto sal mineralizada $45.000"></textarea>
+    <textarea id="gastos" placeholder="Ejemplo: Bulto sal mineralizada $45.000"></textarea>
     <p class="hint">💡 Escribe en lenguaje natural — el sistema categoriza automáticamente</p>
 
     <div class="row2">
       <div>
         <label for="finca">Finca</label>
         <select id="finca">
-          <option value="">— Seleccionar —</option>
-          <option value="Aguazul">Aguazul</option>
-          <option value="Yopal">Yopal</option>
+          <option value="Palosolo" selected>Palosolo</option>
+          <option value="El Japón y San José">El Japón y San José</option>
           <option value="Otra">Otra</option>
         </select>
       </div>
@@ -248,14 +243,15 @@ bulto sal mineralizada $45.000"></textarea>
     <div style="font-size:0.8rem; color:#444; line-height:1.6;">
       <p>El sistema detecta la categoría según palabras clave:</p>
       <br>
-      <p>🐄 <strong>Sanidad animal:</strong> vacuna, ivermectina, antibiótico, desparasitante, garrapaticida, vitamina, aftosa, brucelosis, medicamento, veterinario</p>
-      <p>🌾 <strong>Alimentación animal:</strong> sal, melaza, concentrado, heno, silo, ensilaje, pasto, bloque, urea, bulto</p>
-      <p>🧪 <strong>Insumos agrícolas:</strong> herbicida, fungicida, insecticida, abono, fertilizante, glifosato, urea (cultivo)</p>
-      <p>👷 <strong>Mano de obra:</strong> jornal, trabajador, empleado, peón, ordeñador, jornalero, servicio</p>
-      <p>🚜 <strong>Maquinaria:</strong> tractor, motosierra, repuesto, aceite, mantenimiento, reparación, bomba</p>
+      <p>💊 <strong>Droga veterinaria:</strong> vacuna, ivermectina, antibiótico, desparasitante, garrapaticida, vitamina, aftosa, medicamento, veterinario</p>
+      <p>🌿 <strong>Insumos:</strong> herbicida, fungicida, abono, fertilizante, glifosato, sal mineralizada, melaza, concentrado, semilla, bulto</p>
+      <p>👷 <strong>Mano de obra:</strong> jornal, trabajador, empleado, peón, ordeñador, jornalero, cuadrilla</p>
+      <p>🚜 <strong>Equipos y mantenimiento:</strong> tractor, motosierra, repuesto, aceite, mantenimiento, reparación, bomba, guadaña</p>
       <p>🚛 <strong>Transporte:</strong> flete, camión, gasolina, ACPM, gasoil, viaje, traslado</p>
-      <p>🌱 <strong>Semillas:</strong> semilla, material vegetal, esqueje, clon, siembra, plántula</p>
-      <p>📑 <strong>Administración:</strong> servicio público, teléfono, internet, papelería, banco, contador, otro</p>
+      <p>🛒 <strong>Víveres y mercado:</strong> víveres, mercado, arroz, aceite, azúcar, panela, supermercado, tienda</p>
+      <p>🏠 <strong>Locativos:</strong> pintura, grifo, vidrio, ventilador, cámara, bombillo, plomero, mantenimiento casa</p>
+      <p>💡 <strong>Servicios públicos:</strong> energía, electricidad, agua, acueducto, gas, basura, servicio público</p>
+      <p>📑 <strong>Otros:</strong> teléfono, internet, papelería, banco, contador, impuesto, otro</p>
     </div>
   </div>
 
@@ -280,17 +276,17 @@ if (APPS_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbzrt-8zqFyG1Wiy
 
 // ─── CATEGORIZACIÓN AUTOMÁTICA ────────────────────────────────────────────
 const REGLAS = [
-  { cat: "Sanidad animal",
+  { cat: "Droga veterinaria",
     sub: "Medicamentos y vacunas",
     keys: ["vacuna","ivermectin","antibiótico","antibiotic","desparasit","garrapaticid",
            "vitaminad","vitamina","aftosa","brucelosis","medicament","veterinar","penicil",
            "oxitocin","sulfato","betametason","cicatrizant","suero","jeringa"] },
-  { cat: "Alimentación animal",
+  { cat: "Insumos",
     sub: "Suplementos y forraje",
     keys: ["sal ","sal m","melaza","concentrado","heno","silo","ensilaj","bloque nutri",
            "urea ganado","urea animal","bulto","forraje","grano","maíz ganado",
            "sorgo","palmiste","torta de soya"] },
-  { cat: "Insumos agrícolas",
+  { cat: "Insumos",
     sub: "Agroquímicos",
     keys: ["herbicida","fungicida","insecticida","abono","fertilizant","glifosato",
            "roundup","2,4-d","mancozeb","clorpirifos","cal agrícol","cal dolomít",
@@ -300,7 +296,7 @@ const REGLAS = [
     keys: ["jornal","trabajador","empleado","peón","ordeñador","jornalero","cuadrilla",
            "servicio persona","ayudante","operario","vaquero","palero","desyerbe",
            "chapeo","chapoleo","zoca","limpia"] },
-  { cat: "Maquinaria y equipos",
+  { cat: "Equipos y mantenimiento",
     sub: "Mantenimiento y operación",
     keys: ["tractor","motosierra","repuesto","aceite","mantenimi","reparaci","bomba agua",
            "motocultor","trilladora","cosechadora","guadaña","equipo","herramienta",
@@ -309,11 +305,20 @@ const REGLAS = [
     sub: "Flete y combustible",
     keys: ["flete","camión","camion","gasolina","acpm","gasoil","diesél","diesel",
            "viaje","traslado","transporte","carretera","furgón","remolque","acarreo"] },
-  { cat: "Semillas y material vegetal",
+  { cat: "Insumos",
     sub: "Siembra",
     keys: ["semilla","material vegetal","esqueje","clon","siembra","plántula","plantula",
            "vivero","yuca","palma","caña","pasto braquiari","pasto marand","maicillo"] },
-  { cat: "Administración y otros",
+  { cat: "Víveres y mercado",
+    sub: "Alimentación y mercado",
+    keys: ["víveres","viveres","mercado","arroz","aceite","azúcar","azucar","pasta","lenteja","panela","sal cocina","café","cafe","leche","huevo","pollo mercado","carne mercado","despensa","supermercado","tienda"] },
+  { cat: "Locativos",
+    sub: "Mantenimiento inmueble",
+    keys: ["pintura","grif","vidrio","ventilador","cámara","camara","cerradura","bombillo","teja","cemento","arena","ladrillo","plomero","electricista","mantenimiento casa","arreglo casa","puerta","ventana","tubería","tuberia","llave agua"] },
+  { cat: "Servicios públicos",
+    sub: "Servicios",
+    keys: ["energía","energia","electricidad","agua potable","acueducto","alcantarillado","gas natural","recolección","recoleccion","basura","servicio público","servicio publico","enel","codensa","vanti","triple a"] },
+  { cat: "Otros",
     sub: "Gastos generales",
     keys: ["servicio público","teléfono","telefono","internet","papelería","banco",
            "contador","impuesto","seguro","póliza","escritura","notaria","otros"] },
@@ -327,7 +332,7 @@ function categorizarGasto(texto) {
       if (t.includes(kn)) return { cat: r.cat, sub: r.sub };
     }
   }
-  return { cat: "Administración y otros", sub: "Sin clasificar" };
+  return { cat: "Otros", sub: "Sin clasificar" };
 }
 
 function extraerValor(texto) {
@@ -375,19 +380,19 @@ async function enviarGastos() {
   // Procesar cada línea
   const filas = lineas.map(linea => {
     const { cat, sub } = categorizarGasto(linea);
-    const valor       = extraerValor(linea);
-    const cantidad    = extraerCantidad(linea);
-    const valorUnit   = cantidad > 0 && valor > 0 ? valor / cantidad : valor;
+    const valor = extraerValor(linea);
+    // Quitar el valor monetario de la descripción
+    const descripcionLimpia = linea.replace(/\$\s*[\d.,]+/g, "").replace(/\s+/g, " ").trim();
     return {
       fecha,
-      descripcion: linea,
+      descripcion: descripcionLimpia,
       categoria:   cat,
       subcategoria: sub,
       finca,
       proveedor:   "",
-      cantidad,
+      cantidad:    1,
       unidad:      "und",
-      valorUnit:   Math.round(valorUnit),
+      valorUnit:   valor,
       total:       valor,
       registradoPor: socio,
       notas
