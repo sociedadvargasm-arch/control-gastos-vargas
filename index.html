@@ -260,7 +260,6 @@
       <p>🌿 <strong>Insumos:</strong> herbicida, fungicida, abono, fertilizante, glifosato, sal mineralizada, melaza, concentrado, semilla, bulto</p>
       <p>👷 <strong>Mano de obra:</strong> jornal, trabajador, empleado, peón, ordeñador, jornalero, cuadrilla</p>
       <p>🚜 <strong>Equipos y mantenimiento:</strong> tractor, motosierra, repuesto, aceite, mantenimiento, reparación, bomba, guadaña</p>
-      <p>🚛 <strong>Transporte:</strong> flete, camión, gasolina, ACPM, gasoil, viaje, traslado</p>
       <p>🛒 <strong>Víveres y mercado:</strong> víveres, mercado, arroz, aceite, azúcar, panela, supermercado, tienda</p>
       <p>🏠 <strong>Locativos:</strong> pintura, grifo, vidrio, ventilador, cámara, bombillo, plomero, mantenimiento casa</p>
       <p>💡 <strong>Servicios públicos:</strong> energía, electricidad, agua, acueducto, gas, basura, servicio público</p>
@@ -314,10 +313,7 @@ const REGLAS = [
     keys: ["tractor","motosierra","repuesto","aceite","mantenimi","reparaci","bomba agua",
            "motocultor","trilladora","cosechadora","guadaña","equipo","herramienta",
            "pala","machete","bota","filtro"] },
-  { cat: "Transporte",
-    sub: "Flete y combustible",
-    keys: ["flete","camión","camion","gasolina","acpm","gasoil","diesél","diesel",
-           "viaje","traslado","transporte","carretera","furgón","remolque","acarreo"] },
+
   { cat: "Insumos",
     sub: "Siembra",
     keys: ["semilla","material vegetal","esqueje","clon","siembra","plántula","plantula",
@@ -373,6 +369,88 @@ function formatearPeso(n) {
   return n.toLocaleString("es-CO", {style:"currency", currency:"COP", maximumFractionDigits:0});
 }
 
+// ─── SUBCATEGORÍAS INTELIGENTES ───────────────────────────────────────────
+function inferirSubcategoria(texto, categoria) {
+  const t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  
+  const mapas = {
+    "Víveres y mercado": [
+      ["carne","res","cerdo","pollo","costilla","chata","lomo","pechuga","higado","carne"],
+      ["verdura","papa","cebolla","tomate","zanahoria","lechuga","platano","yuca","arracacha","verduras"],
+      ["fruta","mango","naranja","limon","mandarina","aguacate","guayaba","frutas"],
+      ["lacteo","leche","queso","yogur","mantequilla","crema","lacteos"],
+      ["grano","arroz","frijol","lenteja","garbanzo","arveja","granos"],
+      ["huevo","huevos"],
+      ["mercado","supermercado","tienda","despensa","víveres","viveres"],
+      ["aceite","azucar","panela","sal","cafe","pasta","harina","condimento"],
+    ],
+    "Locativos": [
+      ["electrodomestico","ventilador","nevera","lavadora","microondas","televisor","licuadora","electrodomesticos"],
+      ["pintura","pintar","brocha","rodillo","pintura"],
+      ["plomeria","grifo","tuberia","llave","sanitario","inodoro","ducha","plomero"],
+      ["electricidad","bombillo","cable","interruptor","toma","electricista","electrico"],
+      ["construccion","cemento","arena","ladrillo","bloque","teja","construccion"],
+      ["puerta","ventana","vidrio","cerradura","bisagra","carpinteria"],
+      ["camara","seguridad","alarma","sensores","camara"],
+    ],
+    "Droga veterinaria": [
+      ["vacuna","vacunacion","vacunas"],
+      ["desparasitante","desparasitacion","ivermectina","garrapaticida"],
+      ["antibiotico","penicilina","oxitetraciclina","antibioticos"],
+      ["vitamina","suplemento","minerales","vitaminas"],
+      ["cirugia","consulta","honorario","veterinario"],
+    ],
+    "Insumos": [
+      ["herbicida","glifosato","roundup","herbicidas"],
+      ["fertilizante","abono","urea","fosfato","fertilizantes"],
+      ["sal","sal mineralizada","bloque","suplemento animal"],
+      ["concentrado","alimento animal","harina"],
+      ["semilla","siembra","material vegetal"],
+    ],
+    "Mano de obra": [
+      ["jornal","jornales","jornaleo"],
+      ["ordeño","ordeñador","ordeñadora"],
+      ["limpieza","aseo","lavar","barrer"],
+      ["construccion","obra","albanil"],
+    ],
+    "Equipos y mantenimiento": [
+      ["tractor","motosierra","guadaña","maquinaria"],
+      ["repuesto","pieza","filtro","correa","repuestos"],
+      ["aceite","lubricante","grasa"],
+      ["reparacion","mantenimiento","arreglo"],
+    ],
+    "Servicios públicos": [
+      ["energia","electricidad","luz","recibo luz"],
+      ["agua","acueducto","alcantarillado"],
+      ["gas","gas natural"],
+      ["basura","recoleccion","aseo"],
+    ],
+    "Otros": [
+      ["telefono","celular","internet","wifi"],
+      ["papeleria","utiles","cuaderno","lapiz"],
+      ["banco","transferencia","comision"],
+      ["impuesto","predial","renta"],
+    ],
+  };
+
+  const opciones = mapas[categoria] || [];
+  for (const grupo of opciones) {
+    const etiqueta = grupo[grupo.length - 1]; // última palabra es la etiqueta
+    for (let i = 0; i < grupo.length - 1; i++) {
+      if (t.includes(grupo[i].normalize("NFD").replace(/[\u0300-\u036f]/g,""))) {
+        return etiqueta.charAt(0).toUpperCase() + etiqueta.slice(1);
+      }
+    }
+  }
+  // Si no encuentra, toma la primera palabra significativa
+  const palabras = t.split(/\s+/).filter(p => p.length > 3 &&
+    !["para","como","este","esta","una","los","las","del","con","por","que"].includes(p));
+  if (palabras.length > 0) {
+    return palabras[0].charAt(0).toUpperCase() + palabras[0].slice(1);
+  }
+  return "";
+}
+
 // ─── ENVÍO ─────────────────────────────────────────────────────────────────
 async function enviarGastos() {
   const gastosRaw  = document.getElementById("gastos").value.trim();
@@ -398,11 +476,8 @@ async function enviarGastos() {
     const valor = extraerValor(linea);
     // Quitar el valor monetario de la descripción
     const descripcionLimpia = linea.replace(/\$\s*[\d.,]+/g, "").replace(/\s+/g, " ").trim();
-    // Extraer subcategoría: 2 palabras clave de descripción + notas
-    const textoCompleto = (descripcionLimpia + " " + notas).toLowerCase();
-    const palabras = textoCompleto.split(/\s+/).filter(p => p.length > 3 && 
-      !["para","como","este","esta","una","los","las","del","con","por","que","más","mas"].includes(p));
-    const subcat = palabras.slice(0, 2).join(", ");
+    // Subcategoría inteligente basada en descripción + notas + categoría
+    const subcat = inferirSubcategoria(descripcionLimpia + " " + notas, categoria_sel);
     return {
       fecha,
       descripcion: descripcionLimpia,
