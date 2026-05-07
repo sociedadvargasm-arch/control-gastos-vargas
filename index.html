@@ -191,7 +191,7 @@
 
   <div class="setup-note" id="setupNote" style="display:none">
     ⚠️ <strong>Configuración requerida:</strong> Antes de usar esta app, debes reemplazar
-    <code>https://script.google.com/macros/s/AKfycbwsEeYrhfOAcYOyPy9PTyVk_Y_r9IOs3gXB-bX6NLn2WgKqbCs4HLnROg39TbPPSWkCsg/exec</code> en el código con la URL real de tu Google Apps Script.
+    <code>https://script.google.com/macros/s/AKfycbykb7OaH8GHIHkDG0HYp_PwLX7XXsPW_ncVvsuk_iJHFjKMiPtrXwILVvNqpV_ttRHk4g/exec</code> en el código con la URL real de tu Google Apps Script.
     Sigue las instrucciones del paso 2 del manual.
   </div>
 
@@ -276,13 +276,13 @@
 <script>
 // ─── CONFIGURACIÓN ─────────────────────────────────────────────────────────
 // ⚠️ REEMPLAZA ESTA URL CON LA DE TU GOOGLE APPS SCRIPT DESPUÉS DE PUBLICARLO
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsEeYrhfOAcYOyPy9PTyVk_Y_r9IOs3gXB-bX6NLn2WgKqbCs4HLnROg39TbPPSWkCsg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykb7OaH8GHIHkDG0HYp_PwLX7XXsPW_ncVvsuk_iJHFjKMiPtrXwILVvNqpV_ttRHk4g/exec";
 
 // ─── SET FECHA DEFAULT (hoy) ───────────────────────────────────────────────
 document.getElementById("fecha").valueAsDate = new Date();
 
 // Ocultar nota de setup si ya hay URL real
-if (APPS_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbwsEeYrhfOAcYOyPy9PTyVk_Y_r9IOs3gXB-bX6NLn2WgKqbCs4HLnROg39TbPPSWkCsg/exec") {
+if (APPS_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbykb7OaH8GHIHkDG0HYp_PwLX7XXsPW_ncVvsuk_iJHFjKMiPtrXwILVvNqpV_ttRHk4g/exec") {
   document.getElementById("setupNote").style.display = "none";
 }
 
