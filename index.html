@@ -204,9 +204,12 @@
   <div class="card">
     <h2>📋 Registro de Gastos</h2>
 
-    <label for="gastos">Gastos (uno por línea o separados por coma)</label>
-    <textarea id="gastos" placeholder="Ejemplo: Bulto sal mineralizada $45.000"></textarea>
-    <p class="hint">💡 Escribe en lenguaje natural — el sistema categoriza automáticamente</p>
+    <label for="descripcion">Descripción del gasto <span style="color:#C62828">*</span></label>
+    <input type="text" id="descripcion" placeholder="Ej: 12 bultos de sal mineralizada">
+
+    <label for="valor">Valor del gasto ($) <span style="color:#C62828">*</span></label>
+    <input type="number" id="valor" placeholder="Ej: 150000" min="0" step="1000">
+    <p class="hint">💡 Ingresa el valor en pesos sin puntos ni comas. Ej: 150000</p>
 
     <div class="row2">
       <div>
@@ -453,46 +456,38 @@ function inferirSubcategoria(texto, categoria) {
 
 // ─── ENVÍO ─────────────────────────────────────────────────────────────────
 async function enviarGastos() {
-  const gastosRaw  = document.getElementById("gastos").value.trim();
-  const finca      = document.getElementById("finca").value;
-  const socio      = document.getElementById("socio").value;
-  const fecha      = document.getElementById("fecha").value;
-  const notas      = document.getElementById("notas").value.trim();
-  const catManual  = document.getElementById("categoria").value;
+  const descripcion = document.getElementById("descripcion").value.trim();
+  const valorStr    = document.getElementById("valor").value.trim();
+  const finca       = document.getElementById("finca").value;
+  const socio       = document.getElementById("socio").value;
+  const fecha       = document.getElementById("fecha").value;
+  const notas       = document.getElementById("notas").value.trim();
+  const catManual   = document.getElementById("categoria").value;
 
   // Validaciones
-  const categoria_sel = document.getElementById("categoria").value;
-  if (!gastosRaw) return mostrarError("Por favor ingresa al menos un gasto.");
-  if (!finca)     return mostrarError("Selecciona la finca.");
-  if (!socio)     return mostrarError("Selecciona quién registra el gasto.");
-  if (!categoria_sel) return mostrarError("Debes seleccionar una categoría.");
-  if (!fecha)     return mostrarError("Selecciona la fecha.");
+  if (!descripcion) return mostrarError("⚠️ Debes ingresar la descripción del gasto.");
+  if (!valorStr || parseFloat(valorStr) <= 0) return mostrarError("⚠️ Debes ingresar un valor válido mayor a 0.");
+  if (!socio)       return mostrarError("⚠️ Debes seleccionar quién registra el gasto.");
+  if (!catManual)   return mostrarError("⚠️ Debes seleccionar una categoría.");
+  if (!fecha)       return mostrarError("Selecciona la fecha.");
 
-  const lineas = parsearLineas(gastosRaw);
-  if (lineas.length === 0) return mostrarError("No se encontraron gastos válidos.");
+  const valor = parseFloat(valorStr);
+  const subcat = inferirSubcategoria(descripcion + " " + notas, catManual);
 
-  // Procesar cada línea
-  const filas = lineas.map(linea => {
-    const valor = extraerValor(linea);
-    // Quitar el valor monetario de la descripción
-    const descripcionLimpia = linea.replace(/\$\s*[\d.,]+/g, "").replace(/\s+/g, " ").trim();
-    // Subcategoría inteligente basada en descripción + notas + categoría
-    const subcat = inferirSubcategoria(descripcionLimpia + " " + notas, categoria_sel);
-    return {
-      fecha,
-      descripcion: descripcionLimpia,
-      categoria:   categoria_sel,
-      subcategoria: subcat,
-      finca,
-      proveedor:   "",
-      cantidad:    1,
-      unidad:      "und",
-      valorUnit:   valor,
-      total:       valor,
-      registradoPor: socio,
-      notas
-    };
-  });
+  const filas = [{
+    fecha,
+    descripcion: descripcion,
+    categoria:   catManual,
+    subcategoria: subcat,
+    finca,
+    proveedor:   "",
+    cantidad:    1,
+    unidad:      "und",
+    valorUnit:   valor,
+    total:       valor,
+    registradoPor: socio,
+    notas
+  }];
 
   // Mostrar loading
   document.getElementById("resultado").style.display = "none";
